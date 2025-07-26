@@ -2,6 +2,15 @@
 
 A sophisticated document intelligence system implementing advanced Retrieval-Augmented Generation (RAG) methodologies for comprehensive PDF analysis and interactive question-answering. The platform features a modular microservices architecture optimized for local deployment with enterprise-grade performance characteristics.
 
+# Video Demo 
+
+https://github.com/user-attachments/assets/684e41d5-82e1-4267-b142-81ba095fbda7
+
+Paper in Demo: Attention Is All You Need by Vaswani et al.
+
+Available Online at: https://arxiv.org/abs/1706.03762
+
+
 ## �️ System Architecture
 
 OpenRAGSearch employs a multi-layered RAG pipeline with adaptive document processing capabilities, featuring a decoupled client-server architecture designed for scalability and extensibility.
