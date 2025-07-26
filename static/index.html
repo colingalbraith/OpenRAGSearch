@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenRAGSearch - AI Research Assistant</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/buttons.css">
+    <link rel="stylesheet" href="/static/css/toolbar.css">
+    <link rel="stylesheet" href="/static/css/sidebar.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
+    <link rel="stylesheet" href="/static/css/viewer.css">
+    <link rel="stylesheet" href="/static/css/loading.css">
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -108,6 +114,9 @@
                 </button>
                 <button id="drawTool" class="btn btn-tool" title="Draw" data-tool="draw">
                     <i class="fas fa-pen"></i>
+                </button>
+                <button id="eraserTool" class="btn btn-tool" title="Eraser" data-tool="eraser">
+                    <i class="fas fa-eraser"></i>
                 </button>
             </div>
             
@@ -507,16 +516,107 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Enhanced Interactive Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <!-- Background blur -->
+        <div class="loading-backdrop"></div>
+        
+        <!-- Main loading content -->
         <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p id="loadingText">Processing PDF...</p>
-            <div class="loading-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+            <div class="loading-header">
+                <div class="loading-icon">
+                    <i class="fas fa-file-pdf"></i>
                 </div>
-                <span id="progressText">0%</span>
+                <h2 id="loadingTitle">Processing Your PDF</h2>
+                <p id="loadingSubtitle">We're preparing your document for intelligent analysis</p>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                        <div class="progress-glow" id="progressGlow"></div>
+                    </div>
+                    <span id="progressText">0%</span>
+                </div>
+                
+                <!-- Current step indicator -->
+                <div class="current-step" id="currentStep">
+                    <div class="step-icon">
+                        <i class="fas fa-cut"></i>
+                    </div>
+                    <div class="step-text">
+                        <h4 id="stepTitle">Smart Chunking</h4>
+                        <p id="stepDescription">Breaking text into meaningful sections</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fun facts that rotate -->
+            <div class="fun-fact" id="funFact">
+                <div class="fact-icon">💡</div>
+                <p id="factText">Did you know? AI embeddings can capture the meaning of words in 1,536 dimensions!</p>
+            </div>
+
+            <!-- Processing Steps -->
+            <div class="processing-steps">
+                <div class="step-item" id="step-chunk">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h5>Text Chunking</h5>
+                        <p>Breaking text into sections</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-spinner active"></i>
+                        <i class="fas fa-check completed"></i>
+                    </div>
+                </div>
+
+                <div class="step-item" id="step-embed">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h5>Vectorization</h5>
+                        <p>Creating semantic embeddings</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-spinner active"></i>
+                        <i class="fas fa-check completed"></i>
+                    </div>
+                </div>
+
+                <div class="step-item" id="step-index">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h5>Indexing</h5>
+                        <p>Building search index</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-spinner active"></i>
+                        <i class="fas fa-check completed"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational Info Cards -->
+            <div class="info-cards" id="infoCards">
+                <div class="info-card" id="info-chunk">
+                    <div class="info-icon">✂️</div>
+                    <h4>Smart Chunking</h4>
+                    <p>Text is divided into meaningful sections for better AI understanding.</p>
+                </div>
+
+                <div class="info-card" id="info-embed">
+                    <div class="info-icon">🧠</div>
+                    <h4>AI Embeddings</h4>
+                    <p>Converting text into numerical vectors that capture semantic meaning.</p>
+                </div>
+
+                <div class="info-card" id="info-index">
+                    <div class="info-icon">🔍</div>
+                    <h4>Search Index</h4>
+                    <p>Creating a powerful search engine for instant information retrieval.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -524,6 +624,6 @@
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>
 
-    <script src="/static/main.js"></script>
+    <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>
