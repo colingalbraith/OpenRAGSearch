@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRAGSearch - AI Research Assistant</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-section toolbar-left">
+                <button id="uploadBtn" class="btn btn-primary upload-corner">
+                    <i class="fas fa-upload"></i>
+                    Upload PDF
+                </button>
+                <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                <div class="brand-section">
+                  
+                    <span class="brand-name">OpenRAGSearch</span>
+                </div>
+                <span id="fileName" class="file-name"></span>
+            </div>
+            
+            <div class="toolbar-section toolbar-center">
+                <div class="nav-controls">
+                    <button id="firstPage" class="btn btn-nav" title="First Page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button id="prevPage" class="btn btn-nav" title="Previous Page">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="page-input-group">
+                        <input type="number" id="pageInput" class="page-input" min="1" value="1">
+                        <span class="page-separator">of</span>
+                        <span id="totalPages" class="total-pages">0</span>
+                    </div>
+                    <button id="nextPage" class="btn btn-nav" title="Next Page">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button id="lastPage" class="btn btn-nav" title="Last Page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section toolbar-right">
+                <div class="zoom-controls">
+                    <button id="zoomOut" class="btn btn-zoom" title="Zoom Out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <select id="zoomSelect" class="zoom-select">
+                        <option value="0.5">50%</option>
+                        <option value="0.75">75%</option>
+                        <option value="1.0" selected>100%</option>
+                        <option value="1.25">125%</option>
+                        <option value="1.5">150%</option>
+                        <option value="2.0">200%</option>
+                        <option value="3.0">300%</option>
+                        <option value="fit-width">Fit Width</option>
+                        <option value="fit-page">Fit Page</option>
+                    </select>
+                    <button id="zoomIn" class="btn btn-zoom" title="Zoom In">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="view-controls">
+                    <button id="rotateLeft" class="btn btn-tool" title="Rotate Left">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button id="rotateRight" class="btn btn-tool" title="Rotate Right">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button id="toggleLeftPanel" class="btn btn-tool" title="Toggle Left Panel">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button id="toggleRightPanel" class="btn btn-tool" title="Toggle Research Assistant">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Toolbar for Annotation Tools -->
+        <div class="annotation-toolbar">
+            <div class="tool-group">
+                <button id="selectTool" class="btn btn-tool active" title="Select Tool" data-tool="select">
+                    <i class="fas fa-mouse-pointer"></i>
+                </button>
+                <button id="highlightTool" class="btn btn-tool" title="Highlight" data-tool="highlight">
+                    <i class="fas fa-highlighter"></i>
+                </button>
+                <button id="underlineTool" class="btn btn-tool" title="Underline" data-tool="underline">
+                    <i class="fas fa-underline"></i>
+                </button>
+                <button id="strikethroughTool" class="btn btn-tool" title="Strikethrough" data-tool="strikethrough">
+                    <i class="fas fa-strikethrough"></i>
+                </button>
+                <button id="noteTool" class="btn btn-tool" title="Add Note" data-tool="note">
+                    <i class="fas fa-sticky-note"></i>
+                </button>
+                <button id="drawTool" class="btn btn-tool" title="Draw" data-tool="draw">
+                    <i class="fas fa-pen"></i>
+                </button>
+            </div>
+            
+            <div class="color-group">
+                <label>Color:</label>
+                <div class="color-palette">
+                    <button class="color-btn active" data-color="#FFFF00" style="background: #FFFF00" title="Yellow"></button>
+                    <button class="color-btn" data-color="#00FF00" style="background: #00FF00" title="Green"></button>
+                    <button class="color-btn" data-color="#FF0000" style="background: #FF0000" title="Red"></button>
+                    <button class="color-btn" data-color="#0080FF" style="background: #0080FF" title="Blue"></button>
+                    <button class="color-btn" data-color="#FF8000" style="background: #FF8000" title="Orange"></button>
+                    <button class="color-btn" data-color="#FF00FF" style="background: #FF00FF" title="Pink"></button>
+                    <button class="color-btn" data-color="#000000" style="background: #000000" title="Black"></button>
+                </div>
+            </div>
+            
+            <div class="annotation-actions">
+                <button id="clearAnnotations" class="btn btn-secondary" title="Clear All Annotations">
+                    <i class="fas fa-eraser"></i>
+                    Clear
+                </button>
+                <button id="saveAnnotations" class="btn btn-primary" title="Save Annotations">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar - Thumbnails & Bookmarks -->
+            <div class="left-sidebar" id="leftSidebar">
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="thumbnails">
+                        <i class="fas fa-th-large"></i>
+                        <span>Pages</span>
+                    </button>
+                    <button class="tab-btn" data-tab="bookmarks">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Bookmarks</span>
+                    </button>
+                    <button class="tab-btn" data-tab="annotations">
+                        <i class="fas fa-highlighter"></i>
+                        <span>Annotations</span>
+                    </button>
+                </div>
+                
+                <div class="tab-content">
+                    <div id="thumbnails" class="tab-panel active">
+                        <div class="thumbnails-container" id="thumbnailsContainer">
+                            <!-- Thumbnail pages will be generated here -->
+                        </div>
+                    </div>
+                    
+                    <div id="bookmarks" class="tab-panel">
+                        <div class="bookmarks-container" id="bookmarksContainer">
+                            <div class="empty-state">
+                                <i class="fas fa-bookmark"></i>
+                                <p>No bookmarks yet</p>
+                                <small>Right-click on pages to add bookmarks</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="annotations" class="tab-panel">
+                        <div class="annotations-container" id="annotationsContainer">
+                            <div class="empty-state">
+                                <i class="fas fa-highlighter"></i>
+                                <p>No annotations yet</p>
+                                <small>Use annotation tools to highlight and add notes</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Viewer Panel -->
+            <div class="pdf-panel">
+                <div id="pdfContainer" class="pdf-container">
+                    <div id="welcomeMessage" class="welcome-message">
+                        <div class="welcome-content">
+                            <div class="welcome-icon-container">
+                                <i class="fas fa-search welcome-icon"></i>
+                                <div class="welcome-accent"></div>
+                            </div>
+                            <h2>OpenRAGSearch</h2>
+                            <p>Open-source RAG-powered research assistant for intelligent document analysis</p>
+                            <div class="upload-zone" id="uploadZone">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p>Drop your PDF here or click to browse</p>
+                                <small>Supports documents up to 50MB</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="pdfViewer" class="pdf-viewer" style="display: none;">
+                        <div id="pdfPages" class="pdf-pages">
+                            <!-- PDF pages will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <span id="loadingStatus">Ready</span>
+                    </div>
+                    <div class="status-right">
+                        <span id="selectionInfo"></span>
+                        <span id="zoomInfo">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Chat & Analysis -->
+            <div class="right-sidebar" id="rightSidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-brain"></i> AI Helper</h3>
+                    <div class="header-actions">
+                        <button id="clearChat" class="btn btn-icon" title="Clear Chat">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Assistant Tabs -->
+                <div class="ai-tabs">
+                    <button class="ai-tab-btn active" data-ai-tab="chat">
+                        <i class="fas fa-comments"></i>
+                        <span>Chat</span>
+                    </button>
+                    <button class="ai-tab-btn" data-ai-tab="tools">
+                        <i class="fas fa-tools"></i>
+                        <span>Tools</span>
+                    </button>
+                    <button class="ai-tab-btn" data-ai-tab="analysis">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analysis</span>
+                    </button>
+                </div>
+
+                <!-- AI Tab Content -->
+                <div class="ai-tab-content">
+                    <!-- Chat Tab -->
+                    <div id="ai-chat" class="ai-tab-panel active">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="welcome-chat">
+                                <div class="assistant-avatar">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div class="message-content">
+                                    <p>Hello! I'm your AI RAG based research assistant.</p>
+                                    <p>Upload a PDF of a paper and we can analyze, summarize, and understand the content together.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <textarea id="chatInput" placeholder="Ask me anything about the Paper..." rows="2"></textarea>
+                                <button id="sendBtn" class="btn btn-send" disabled>
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools Tab -->
+                    <div id="ai-tools" class="ai-tab-panel">
+                        <div class="tools-content">
+                            <div class="tool-section">
+                                <h4><i class="fas fa-magic"></i> Quick Analysis</h4>
+                                <div class="tool-grid">
+                                    <button class="tool-card" data-action="summarize">
+                                        <i class="fas fa-compress-alt"></i>
+                                        <span class="tool-title">Summarize</span>
+                                        <span class="tool-desc">Get comprehensive overview</span>
+                                    </button>
+                                    <button class="tool-card" data-action="key-points">
+                                        <i class="fas fa-list-ul"></i>
+                                        <span class="tool-title">Key Points</span>
+                                        <span class="tool-desc">Extract main insights</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="tool-section">
+                                <h4><i class="fas fa-microscope"></i> Deep Analysis</h4>
+                                <div class="tool-grid">
+                                    <button class="tool-card" data-action="methodology">
+                                        <i class="fas fa-cogs"></i>
+                                        <span class="tool-title">Methodology</span>
+                                        <span class="tool-desc">Analyze approach</span>
+                                    </button>
+                                    <button class="tool-card" data-action="critique">
+                                        <i class="fas fa-balance-scale"></i>
+                                        <span class="tool-title">Critical Analysis</span>
+                                        <span class="tool-desc">Strengths & weaknesses</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="tool-section">
+                                <h4><i class="fas fa-graduation-cap"></i> Research Tools</h4>
+                                <div class="tool-grid">
+                                    <button class="tool-card" data-action="questions">
+                                        <i class="fas fa-question-circle"></i>
+                                        <span class="tool-title">Discussion</span>
+                                        <span class="tool-desc">Generate questions</span>
+                                    </button>
+                                    <button class="tool-card" data-action="citations">
+                                        <i class="fas fa-quote-right"></i>
+                                        <span class="tool-title">References</span>
+                                        <span class="tool-desc">Key citations</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Tab -->
+                    <div id="ai-analysis" class="ai-tab-panel">
+                        <div class="analysis-content">
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-file-alt"></i> Document Info</h4>
+                                <div class="document-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Pages</span>
+                                        <span class="stat-value" id="totalPagesInfo">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Current</span>
+                                        <span class="stat-value" id="currentPageInfo">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Annotations</span>
+                                        <span class="stat-value" id="annotationCount">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Bookmarks</span>
+                                        <span class="stat-value" id="bookmarkCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-cogs"></i> Processing Info</h4>
+                                <div class="document-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Chunk Size</span>
+                                        <span class="stat-value" id="chunkSizeInfo">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Chunks</span>
+                                        <span class="stat-value" id="totalChunksInfo">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Embedding Model</span>
+                                        <span class="stat-value" id="embeddingModelInfo">-</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">LLM</span>
+                                        <span class="stat-value" id="llmModelInfo">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-clock"></i> Recent Activity</h4>
+                                <div class="activity-list" id="recentActivity">
+                                    <div class="activity-item">
+                                        <i class="fas fa-upload"></i>
+                                        <span>No document loaded</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-section">
+                                <h4><i class="fas fa-download"></i> Export Options</h4>
+                                <div class="export-options">
+                                    <button class="export-btn" id="exportAnnotations">
+                                        <i class="fas fa-highlighter"></i>
+                                        Export Annotations
+                                    </button>
+                                    <button class="export-btn" id="exportChat">
+                                        <i class="fas fa-comments"></i>
+                                        Export Chat
+                                    </button>
+                                    <button class="export-btn" id="exportSummary">
+                                        <i class="fas fa-file-export"></i>
+                                        Export Summary
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menus -->
+    <div id="textContextMenu" class="context-menu" style="display: none;">
+        <button class="context-item" data-action="highlight">
+            <i class="fas fa-highlighter"></i>
+            Highlight
+        </button>
+        <button class="context-item" data-action="underline">
+            <i class="fas fa-underline"></i>
+            Underline
+        </button>
+        <button class="context-item" data-action="note">
+            <i class="fas fa-sticky-note"></i>
+            Add Note
+        </button>
+        <button class="context-item" data-action="copy">
+            <i class="fas fa-copy"></i>
+            Copy Text
+        </button>
+        <button class="context-item" data-action="search">
+            <i class="fas fa-search"></i>
+            Search Similar
+        </button>
+    </div>
+
+    <div id="pageContextMenu" class="context-menu" style="display: none;">
+        <button class="context-item" data-action="bookmark">
+            <i class="fas fa-bookmark"></i>
+            Add Bookmark
+        </button>
+        <button class="context-item" data-action="rotate-page">
+            <i class="fas fa-redo"></i>
+            Rotate Page
+        </button>
+        <button class="context-item" data-action="extract-page">
+            <i class="fas fa-file-export"></i>
+            Extract Page
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="noteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sticky-note"></i> Add Note</h3>
+                <button id="closeNoteModal" class="btn btn-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-text-preview" id="selectedTextPreview">
+                    <!-- Selected text will appear here -->
+                </div>
+                <div class="note-input-group">
+                    <label for="noteInput">Your Note:</label>
+                    <textarea id="noteInput" placeholder="Add your note here..." rows="4"></textarea>
+                </div>
+                <div class="note-options">
+                    <label>
+                        <input type="checkbox" id="notePrivate">
+                        Private note (won't be shared with AI)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelNote" class="btn btn-secondary">Cancel</button>
+                <button id="saveNote" class="btn btn-primary">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookmarkModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bookmark"></i> Add Bookmark</h3>
+                <button id="closeBookmarkModal" class="btn btn-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="bookmark-input-group">
+                    <label for="bookmarkTitle">Bookmark Title:</label>
+                    <input type="text" id="bookmarkTitle" placeholder="Enter bookmark title...">
+                </div>
+                <div class="bookmark-input-group">
+                    <label for="bookmarkDescription">Description (optional):</label>
+                    <textarea id="bookmarkDescription" placeholder="Add description..." rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBookmark" class="btn btn-secondary">Cancel</button>
+                <button id="saveBookmark" class="btn btn-primary">Save Bookmark</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Processing PDF...</p>
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span id="progressText">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
