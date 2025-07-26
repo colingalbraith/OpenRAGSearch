@@ -4,7 +4,7 @@ A sophisticated document intelligence system implementing advanced Retrieval-Aug
 
 # Video Demo 
 
-https://github.com/user-attachments/assets/684e41d5-82e1-4267-b142-81ba095fbda7
+https://github.com/user-attachments/assets/7ad6ea4e-e07d-4c12-a871-34b5a7d3cdac
 
 Paper in Demo: Attention Is All You Need by Vaswani et al.
 
